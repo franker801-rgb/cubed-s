@@ -1,35 +1,38 @@
-:root { --gold: #d4af37; --dark: #1e293b; --light: #f8fafc; }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-body { background: var(--light); color: var(--dark); overflow-x: hidden; }
+:root { --gold: #c5a059; --royal: #111; }
+body { margin: 0; font-family: 'Poppins', sans-serif; background: #000; }
 
-/* Banner Styling */
-.hero-slider { width: 100%; height: 220px; overflow: hidden; background: #000; }
-@media (min-width: 768px) { .hero-slider { height: 450px; } }
-.slider-wrapper { display: flex; transition: transform 1.2s ease; height: 100%; }
-.banner-slide { min-width: 100%; height: 100%; object-fit: cover; }
+.page { display: none; min-height: 100vh; position: relative; }
+.page.active { display: block; }
 
-/* Navbar */
-.navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: #fff; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-.logo { font-family: 'Cinzel', serif; font-size: 22px; }
-.logo span { color: var(--gold); }
+/* LOGIN BACKGROUND */
+#login-page { 
+    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200') center/cover; 
+    justify-content: center; align-items: center; 
+}
+#login-page.active { display: flex; }
 
-/* Search & Filter Drawer */
-.filter-drawer { background: white; padding: 15px 5%; border-bottom: 2px solid var(--gold); animation: slideDown 0.3s ease; }
-@keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-#searchInput { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 10px; }
-.filter-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.filter-tabs { display: flex; gap: 8px; padding-bottom: 5px; }
-.f-btn { padding: 6px 15px; border-radius: 20px; border: 1px solid var(--gold); background: white; white-space: nowrap; font-size: 13px; cursor: pointer; }
-.f-btn.active { background: var(--gold); color: white; }
+/* SHOP & ADMIN BACKGROUND (50% Light) */
+#shop-page, #admin-page { 
+    background: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), 
+                url('https://images.unsplash.com/photo-1512690196236-d5a232933339?w=1200') fixed center/cover; 
+}
 
-/* Grid Fix for Phone */
-.product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; }
-@media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); gap: 25px; padding: 30px 8%; } }
+.glass-box { background: rgba(255,255,255,0.98); padding: 40px; border-radius: 35px; text-align: center; width: 320px; border: 3px solid var(--gold); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+.royal-title { font-family: 'Cinzel', serif; font-size: 38px; color: var(--royal); letter-spacing: 2px; }
 
-.card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; transition: 0.3s; }
-.card img { width: 100%; height: 190px; object-fit: cover; }
-@media (min-width: 768px) { .card img { height: 350px; } }
-.card:hover { transform: translateY(-5px); }
+/* PRODUCT IMAGES (100% BRIGHT & CLEAN) */
+.card img { 
+    width: 100%; height: 220px; object-fit: cover; 
+    opacity: 1 !important; 
+    filter: brightness(1.1); 
+    display: block;
+}
 
-.admin-actions { display: flex; gap: 2px; padding: 5px; background: #f1f5f9; }
-.admin-actions button { flex: 1; font-size: 10px; padding: 8px; border: none; border-radius: 4px; cursor: pointer; }
+.royal-nav { padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; background: #fff; border-bottom: 4px solid var(--gold); }
+.royal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 25px; }
+.card { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #eee; }
+
+.prime-btn { background: var(--royal); color: #fff; border: none; padding: 14px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
+input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+.admin-trigger { font-size: 11px; color: #888; margin-top: 20px; cursor: pointer; text-decoration: underline; }
