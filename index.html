@@ -2,79 +2,86 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CUTTING | Eleven 7 Fashion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AAD GARMENTS | Luxury Trend Store</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <section id="login-page" class="page active">
-        <div class="glass-box">
-            <h1 class="royal-title">CUTTING</h1>
-            <p class="tagline">ELEVEN 7 FASHION STUDIO</p>
-            <input type="text" id="uName" placeholder="Enter Your Name">
-            <input type="tel" id="uPhone" placeholder="Mobile Number">
-            <button class="prime-btn" onclick="enterShop()">ENTER STUDIO</button>
-            <p onclick="openAdmin()" class="admin-trigger">Staff Access</p>
+<div class="hero-slider">
+    <div class="slider-wrapper" id="heroWrapper"></div>
+</div>
+
+<nav class="navbar">
+    <div class="logo">AAD<span>GARMENTS</span></div>
+    <div class="nav-actions">
+        <button class="filter-trigger" onclick="toggleFilter()">🔍 Search & Filter</button>
+        <button onclick="loginAdmin()" id="entryBtn" class="admin-btn">Admin</button>
+        <button onclick="logout()" id="exitBtn" style="display:none;" class="admin-btn logout">Logout</button>
+    </div>
+</nav>
+
+<div id="filterMenu" class="filter-drawer" style="display: none;">
+    <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Search trendy styles (e.g. Soldier Cut)...">
+    <div class="filter-wrapper">
+        <div class="filter-tabs">
+            <button class="f-btn active" onclick="filterByCategory('All')">All</button>
+            <button class="f-btn" onclick="filterByCategory('Shirt')">Shirt</button>
+            <button class="f-btn" onclick="filterByCategory('T-Shirt')">T-Shirt</button>
+            <button class="f-btn" onclick="filterByCategory('Oversized')">Oversized</button>
+            <button class="f-btn" onclick="filterByCategory('Soldier Cut')">Soldier Cut</button>
+            <button class="f-btn" onclick="filterByCategory('Cargo')">Cargo</button>
+            <button class="f-btn" onclick="filterByCategory('Shorts')">Shorts</button>
+            <button class="f-btn" onclick="filterByCategory('Cut-Style')">Cut-Style</button>
         </div>
-    </section>
+    </div>
+</div>
 
-    <section id="shop-page" class="page">
-        <nav class="royal-nav">
-            <div class="nav-logo">CUTTING</div>
-            <div class="nav-right">
-                <button class="view-list-btn" onclick="togglePublicList()">
-                    <span class="pulse"></span> 📅 ACTIVE SLOTS
-                </button>
-                <div id="welcome-user" class="user-tag"></div>
-            </div>
-        </nav>
+<div id="adminPanel" class="admin-section" style="display:none;">
+    <div class="tabs">
+        <button onclick="switchTab('pTab')">Add Product</button>
+        <button onclick="switchTab('bTab')">Add Banner</button>
+    </div>
+    <div id="pTab">
+        <input type="text" id="pName" placeholder="Product Title">
+        <input type="number" id="pPrice" placeholder="Price (₹)">
+        <select id="pCategory" class="admin-input">
+            <option value="Shirt">Full Shirt</option>
+            <option value="T-Shirt">T-Shirt</option>
+            <option value="Oversized">Oversized Tee</option>
+            <option value="Soldier Cut">Soldier Cut</option>
+            <option value="Cargo">Baggy Cargo</option>
+            <option value="Shorts">Shorts</option>
+            <option value="Cut-Style">Cut-Style/Long</option>
+        </select>
+        <input type="file" id="pFiles" multiple accept="image/*">
+        <button onclick="uploadProduct()" class="gold-btn">Publish to Cloud</button>
+    </div>
+    <div id="bTab" style="display:none;">
+        <input type="file" id="bFile" accept="image/*">
+        <button onclick="uploadBanner()" class="gold-btn">Upload Banner</button>
+        <div id="adminBannerList"></div>
+    </div>
+</div>
 
-        <div id="public-booking-modal" class="mini-modal">
-            <div class="mini-modal-header">
-                <h4>Today's Schedule</h4>
-                <span onclick="togglePublicList()" style="cursor:pointer">&times;</span>
-            </div>
-            <div id="public-list-items"></div>
+<main class="container">
+    <h2 class="section-title">Latest Trend Collection</h2>
+    <div id="productGrid" class="product-grid"></div>
+</main>
+
+<div id="productModal" class="modal" style="display:none;">
+    <div class="modal-card">
+        <span class="close" onclick="closeProduct()">&times;</span>
+        <div id="modalSlider" class="modal-images"></div>
+        <div class="modal-info">
+            <h2 id="modalTitle"></h2>
+            <p id="modalPrice"></p>
+            <button class="wa-btn" onclick="orderWhatsApp()">Order via WhatsApp</button>
         </div>
+    </div>
+</div>
 
-        <div class="main-wrapper">
-            <h2 class="sub-title">Signature Haircuts</h2>
-            <div id="services-grid" class="royal-grid"></div>
-        </div>
-    </section>
-
-    <section id="admin-page" class="page">
-        <div class="admin-wrap">
-            <div class="admin-head">
-                <h2>Admin Control</h2>
-                <button class="close-x" onclick="location.reload()">Back</button>
-            </div>
-            <div class="admin-grid">
-                <div class="admin-card">
-                    <h3>Add New Style</h3>
-                    <input type="text" id="newSName" placeholder="Style Name">
-                    <input type="number" id="newSPrice" placeholder="Price (₹)">
-                    <input type="number" id="newSTime" placeholder="Time (Min)">
-                    <label class="upload-btn">📸 Select Photo
-                        <input type="file" id="newSImgFile" accept="image/*" hidden>
-                    </label>
-                    <div id="preview"></div>
-                    <button class="prime-btn" onclick="addNewService()">PUBLISH STYLE</button>
-                    <hr>
-                    <div id="admin-styles-list" class="mini-list"></div>
-                </div>
-                <div class="admin-card">
-                    <h3>Recent Bookings</h3>
-                    <div id="admin-booking-list"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

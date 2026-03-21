@@ -1,68 +1,115 @@
-const firebaseConfig = {
-    databaseURL: "https://cutting-7e1e9-default-rtdb.firebaseio.com/",
-    projectId: "cutting-7e1e9",
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const DB_URL = "https://aad-garments-default-rtdb.firebaseio.com"; // Aapka Link
+const PASS = "AAD786";
 
-const PASS = "cutting786";
-let services = [];
-let bookings = [];
+let products = [];
+let banners = [];
+let bIdx = 0;
 
-// Real-time Data Sync
-db.ref('services').on('value', (s) => { services = s.val() ? Object.values(s.val()) : []; renderStyles(); });
-db.ref('bookings').on('value', (s) => { bookings = s.val() ? Object.values(s.val()) : []; renderAdmin(); });
-
-function enterShop() {
-    if(!document.getElementById('uName').value) return alert("Please Enter Your Name");
-    document.getElementById('login-page').classList.remove('active');
-    document.getElementById('shop-page').classList.add('active');
-    document.getElementById('welcome-user').innerText = "Hi, " + document.getElementById('uName').value;
+// 1. Firebase Sync
+async function syncCloud(method, data = null) {
+    try {
+        const url = `${DB_URL}/store.json`;
+        if (method === "GET") {
+            const res = await fetch(url);
+            return await res.json() || { products: [], banners: [] };
+        } else {
+            await fetch(url, { method: 'PUT', body: JSON.stringify(data) });
+        }
+    } catch (e) { console.error("Cloud Error", e); }
 }
 
-function renderStyles() {
-    let g = document.getElementById('services-grid');
-    if(!g) return;
-    g.innerHTML = services.map((s, i) => `
-        <div class="card">
-            <img src="${s.img}">
-            <div class="card-info">
-                <h3 style="margin:0; font-family:'Cinzel'">${s.name}</h3>
-                <p style="color:var(--gold); font-weight:bold; font-size:18px;">₹${s.price}</p>
-                <button class="prime-btn" onclick="alert('Booking feature coming soon with real-time slots!')">BOOK NOW</button>
-            </div>
-        </div>
-    `).join('');
+async function init() {
+    const data = await syncCloud("GET");
+    products = data.products || [];
+    banners = data.banners || [];
+    render();
 }
 
-function openAdmin() {
-    if(prompt("Staff Pass:") === PASS) {
-        document.getElementById('login-page').classList.remove('active');
-        document.getElementById('admin-page').classList.add('active');
+// 2. Admin & Upload
+function loginAdmin() {
+    if (prompt("Security Key:") === PASS) {
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('entryBtn').style.display = 'none';
+        document.getElementById('exitBtn').style.display = 'block';
+        render();
     }
 }
 
-function renderAdmin() {
-    let list = document.getElementById('admin-booking-list');
-    if(!list) return;
-    list.innerHTML = bookings.map(b => `
-        <div style="background:#f9f9f9; padding:10px; border-radius:10px; margin-bottom:5px;">
-            <b>${b.name}</b> - ${b.service} (${b.time})
-        </div>
-    `).join('') || "No bookings yet.";
+async function uploadProduct() {
+    const name = document.getElementById('pName').value;
+    const price = document.getElementById('pPrice').value;
+    const category = document.getElementById('pCategory').value;
+    const files = document.getElementById('pFiles').files;
+    let imgs = [];
+    
+    if(name && price && files.length > 0) {
+        const toBase = f => new Promise(res => {
+            const fr = new FileReader();
+            fr.onload = () => res(fr.result);
+            fr.readAsDataURL(f);
+        });
+        for(let f of files) imgs.push(await toBase(f));
+        products.push({ name, price, category, imgs, stock: true });
+        await syncCloud("SAVE", { products, banners });
+        alert("Published to Cloud!");
+        init();
+    }
 }
 
-let b64 = "";
-document.getElementById('newSImgFile').addEventListener('change', function(e) {
-    let r = new FileReader();
-    r.onload = () => { b64 = r.result; document.getElementById('preview').innerHTML = `<img src="${b64}" style="width:80px; margin-top:10px;">`; };
-    r.readAsDataURL(e.target.files[0]);
-});
-
-function addNewService() {
-    let n = document.getElementById('newSName').value, p = document.getElementById('newSPrice').value, t = document.getElementById('newSTime').value;
-    if(!n || !p || !t || !b64) return alert("Please fill all fields!");
-    let id = Date.now();
-    db.ref('services/' + id).set({name:n, price:p, duration:t, img:b64, id:id});
-    alert("New Style Added Globally!");
+// 3. Search & Filter Logic
+function toggleFilter() {
+    const m = document.getElementById('filterMenu');
+    m.style.display = m.style.display === 'none' ? 'block' : 'none';
 }
+
+function filterProducts() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const f = products.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+    render(f);
+}
+
+function filterByCategory(cat) {
+    document.querySelectorAll('.f-btn').forEach(b => b.classList.toggle('active', b.innerText.includes(cat) || (cat==='All' && b.innerText==='All')));
+    const f = cat === 'All' ? products : products.filter(p => p.category === cat);
+    render(f);
+}
+
+// 4. Render Grid
+function render(data = products) {
+    document.getElementById('heroWrapper').innerHTML = banners.map(b => `<img src="${b}" class="banner-slide">`).join('');
+    const grid = document.getElementById('productGrid');
+    const isAdmin = document.getElementById('adminPanel').style.display === 'block';
+
+    grid.innerHTML = data.map((p) => {
+        const i = products.indexOf(p);
+        return `
+        <div class="card" onclick="openProduct(${i})">
+            ${!p.stock ? '<div style="position:absolute;top:10px;left:10px;background:red;color:white;padding:3px 8px;font-size:10px;z-index:2;">SOLD OUT</div>' : ''}
+            <img src="${p.imgs[0]}">
+            <div style="padding:10px; text-align:center;">
+                <span style="font-size:10px; color:gray;">${p.category}</span>
+                <h4 style="font-size:13px; text-transform:uppercase;">${p.name}</h4>
+                <p style="color:var(--gold); font-weight:bold;">₹${p.price}</p>
+            </div>
+            ${isAdmin ? `
+                <div class="admin-actions">
+                    <button style="background:#dcfce7;" onclick="event.stopPropagation(); toggleStock(${i})">Stock</button>
+                    <button style="background:#fee2e2;color:red;" onclick="event.stopPropagation(); deleteProduct(${i})">Delete</button>
+                </div>
+            ` : ''}
+        </div>`;
+    }).join('');
+}
+
+// 9 Sec Auto Banner
+setInterval(() => {
+    if(banners.length > 1) {
+        bIdx = (bIdx + 1) % banners.length;
+        document.getElementById('heroWrapper').style.transform = `translateX(-${bIdx * 100}%)`;
+    }
+}, 9000);
+
+async function deleteProduct(i) { if(confirm("Delete?")) { products.splice(i, 1); await syncCloud("SAVE", { products, banners }); init(); } }
+async function toggleStock(i) { products[i].stock = !products[i].stock; await syncCloud("SAVE", { products, banners }); init(); }
+function logout() { location.reload(); }
+init();
