@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FASHION WALA | Premium Store</title>
+    <title>FASHION WALA | Official Store</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -14,11 +14,25 @@
         <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1040/1040216.png'">
         <div class="brand-title">FASHION<span>WALA</span></div>
     </div>
-    <div class="nav-utils">
-        <button class="search-trigger-btn" onclick="toggleFilter()">🔍 Search</button>
-        <button class="staff-access" onclick="loginAdmin()">STAFF</button>
-    </div>
+    <button class="staff-access" onclick="loginAdmin()">STAFF LOGIN</button>
 </nav>
+
+<section class="search-section">
+    <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="Search (Shirts, Cargos, Oversized...)">
+    </div>
+</section>
+
+<div class="category-bar">
+    <button class="cat-chip active" onclick="filterByCategory('All')">All</button>
+    <button class="cat-chip" onclick="filterByCategory('Shirt')">Shirts</button>
+    <button class="cat-chip" onclick="filterByCategory('T-Shirt')">T-Shirts</button>
+    <button class="cat-chip" onclick="filterByCategory('Oversized')">Oversized</button>
+    <button class="cat-chip" onclick="filterByCategory('Soldier Cut')">Soldier Cut</button>
+    <button class="cat-chip" onclick="filterByCategory('Cargo')">Cargos</button>
+    <button class="cat-chip" onclick="filterByCategory('Shorts')">Shorts</button>
+</div>
 
 <header class="hero-section">
     <div class="slider-container">
@@ -26,23 +40,8 @@
     </div>
 </header>
 
-<div id="filterMenu" class="filter-drawer" style="display: none;">
-    <div class="search-container-big">
-        <input type="text" id="searchInput" oninput="filterProducts()" placeholder="What are you looking for today? (e.g. Cargo, Shirt)">
-    </div>
-    <div class="category-list">
-        <button class="cat-chip active" onclick="filterByCategory('All')">All</button>
-        <button class="cat-chip" onclick="filterByCategory('Shirt')">Shirts</button>
-        <button class="cat-chip" onclick="filterByCategory('T-Shirt')">T-Shirts</button>
-        <button class="cat-chip" onclick="filterByCategory('Oversized')">Oversized</button>
-        <button class="cat-chip" onclick="filterByCategory('Soldier Cut')">Soldier Cut</button>
-        <button class="cat-chip" onclick="filterByCategory('Cargo')">Cargos</button>
-        <button class="cat-chip" onclick="filterByCategory('Shorts')">Shorts</button>
-    </div>
-</div>
-
 <main class="content-area">
-    <h2 class="main-heading">EXCLUSIVE COLLECTION</h2>
+    <h2 class="main-heading">EXCLUSIVE ARRIVALS</h2>
     <div id="productGrid" class="premium-grid"></div>
 </main>
 
@@ -50,8 +49,8 @@
     <div class="admin-content">
         <h3>Store Management</h3>
         <div class="admin-nav">
-            <button onclick="switchTab('pTab')">Inventory</button>
-            <button onclick="switchTab('bTab')">Banners</button>
+            <button onclick="switchTab('pTab')">Add Product</button>
+            <button onclick="switchTab('bTab')">Add Banner</button>
         </div>
         <div id="pTab" class="tab-pane">
             <input type="text" id="pName" placeholder="Product Name">
@@ -65,13 +64,15 @@
                 <option value="Shorts">Shorts</option>
             </select>
             <input type="file" id="pFiles" multiple accept="image/*">
-            <button onclick="uploadProduct()" class="primary-btn">Save Product</button>
+            <button onclick="uploadProduct()" class="primary-btn">Save to Store</button>
         </div>
         <div id="bTab" class="tab-pane" style="display:none;">
             <input type="file" id="bFile" accept="image/*">
-            <button onclick="uploadBanner()" class="primary-btn">Save Banner</button>
+            <button onclick="uploadBanner()" class="primary-btn">Add Banner</button>
         </div>
-        <button onclick="location.reload()" class="exit-link">Logout</button>
+        
+        <button onclick="closeAdminModal()" class="manage-btn">Manage Existing Products (Edit/Delete)</button>
+        <button onclick="location.reload()" class="exit-link">Logout & Exit Admin</button>
     </div>
 </div>
 
