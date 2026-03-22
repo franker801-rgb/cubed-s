@@ -1,68 +1,142 @@
-const firebaseConfig = {
-    databaseURL: "https://cutting-7e1e9-default-rtdb.firebaseio.com/",
-    projectId: "cutting-7e1e9",
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const DB_URL = "https://aad-garments-default-rtdb.firebaseio.com"; 
+const PASS = "fashionwala786"; 
 
-const PASS = "cutting786";
-let services = [];
-let bookings = [];
+let products = [];
+let banners = [];
+let bIdx = 0;
+let isAdmin = false;
 
-// Real-time Data Sync
-db.ref('services').on('value', (s) => { services = s.val() ? Object.values(s.val()) : []; renderStyles(); });
-db.ref('bookings').on('value', (s) => { bookings = s.val() ? Object.values(s.val()) : []; renderAdmin(); });
-
-function enterShop() {
-    if(!document.getElementById('uName').value) return alert("Please Enter Your Name");
-    document.getElementById('login-page').classList.remove('active');
-    document.getElementById('shop-page').classList.add('active');
-    document.getElementById('welcome-user').innerText = "Hi, " + document.getElementById('uName').value;
+async function initStore() {
+    try {
+        const res = await fetch(`${DB_URL}/store.json`);
+        const data = await res.json();
+        if(data) {
+            products = data.products || [];
+            banners = data.banners || [];
+            render();
+            if(banners.length > 1) startSlider();
+        }
+    } catch (e) { console.error("Sync Error"); }
 }
 
-function renderStyles() {
-    let g = document.getElementById('services-grid');
-    if(!g) return;
-    g.innerHTML = services.map((s, i) => `
+function loginAdmin() {
+    if (prompt("Staff Access Key:") === PASS) {
+        isAdmin = true;
+        document.getElementById('adminPanel').style.display = 'flex';
+        render();
+    } else { alert("Unauthorized!"); }
+}
+
+function render(data = products) {
+    const track = document.getElementById('heroWrapper');
+    if(banners.length > 0) {
+        track.innerHTML = banners.map(b => `<img src="${b}" class="banner-slide">`).join('');
+    }
+
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = data.map((p, i) => {
+        const idx = products.indexOf(p);
+        return `
         <div class="card">
-            <img src="${s.img}">
+            ${!p.stock ? '<div class="stock-badge sold-out">Sold Out</div>' : '<div class="stock-badge">In Stock</div>'}
+            <img src="${p.imgs[0]}" loading="lazy">
             <div class="card-info">
-                <h3 style="margin:0; font-family:'Cinzel'">${s.name}</h3>
-                <p style="color:var(--gold); font-weight:bold; font-size:18px;">₹${s.price}</p>
-                <button class="prime-btn" onclick="alert('Booking feature coming soon with real-time slots!')">BOOK NOW</button>
+                <p style="font-size:9px; color:#999; text-transform:uppercase;">${p.category}</p>
+                <h4>${p.name}</h4>
+                <p class="price">₹${p.price}</p>
             </div>
-        </div>
-    `).join('');
+            ${isAdmin ? `
+            <div class="admin-bar">
+                <button onclick="toggleStock(${idx})" style="background:#e8f5e9;">Stock Toggle</button>
+                <button onclick="deleteItem(${idx})" style="background:#ffebee; color:red;">Delete</button>
+            </div>` : ''}
+        </div>`;
+    }).join('');
 }
 
-function openAdmin() {
-    if(prompt("Staff Pass:") === PASS) {
-        document.getElementById('login-page').classList.remove('active');
-        document.getElementById('admin-page').classList.add('active');
+function startSlider() {
+    setInterval(() => {
+        bIdx = (bIdx + 1) % banners.length;
+        const track = document.getElementById('heroWrapper');
+        if(track) track.style.transform = `translateX(-${bIdx * 100}%)`;
+    }, 9000);
+}
+
+async function sync() {
+    await fetch(`${DB_URL}/store.json`, {
+        method: 'PUT',
+        body: JSON.stringify({ products, banners })
+    });
+}
+
+async function toggleStock(i) {
+    products[i].stock = !products[i].stock;
+    await sync();
+    render();
+}
+
+async function deleteItem(i) {
+    if(confirm("Confirm Delete?")) {
+        products.splice(i, 1);
+        await sync();
+        render();
     }
 }
 
-function renderAdmin() {
-    let list = document.getElementById('admin-booking-list');
-    if(!list) return;
-    list.innerHTML = bookings.map(b => `
-        <div style="background:#f9f9f9; padding:10px; border-radius:10px; margin-bottom:5px;">
-            <b>${b.name}</b> - ${b.service} (${b.time})
-        </div>
-    `).join('') || "No bookings yet.";
-}
-
-let b64 = "";
-document.getElementById('newSImgFile').addEventListener('change', function(e) {
-    let r = new FileReader();
-    r.onload = () => { b64 = r.result; document.getElementById('preview').innerHTML = `<img src="${b64}" style="width:80px; margin-top:10px;">`; };
-    r.readAsDataURL(e.target.files[0]);
+const toBase = f => new Promise(r => {
+    const reader = new FileReader();
+    reader.onload = () => r(reader.result);
+    reader.readAsDataURL(f);
 });
 
-function addNewService() {
-    let n = document.getElementById('newSName').value, p = document.getElementById('newSPrice').value, t = document.getElementById('newSTime').value;
-    if(!n || !p || !t || !b64) return alert("Please fill all fields!");
-    let id = Date.now();
-    db.ref('services/' + id).set({name:n, price:p, duration:t, img:b64, id:id});
-    alert("New Style Added Globally!");
+async function uploadProduct() {
+    const name = document.getElementById('pName').value;
+    const price = document.getElementById('pPrice').value;
+    const cat = document.getElementById('pCategory').value;
+    const files = document.getElementById('pFiles').files;
+    
+    if(name && price && files.length > 0) {
+        let imgs = [];
+        for(let f of files) imgs.push(await toBase(f));
+        products.push({ name, price, category: cat, imgs, stock: true });
+        await sync();
+        location.reload();
+    }
 }
+
+async function uploadBanner() {
+    const f = document.getElementById('bFile').files[0];
+    if(f) {
+        banners.push(await toBase(f));
+        await sync();
+        location.reload();
+    }
+}
+
+function switchTab(tab) {
+    document.getElementById('pTab').style.display = tab === 'pTab' ? 'block' : 'none';
+    document.getElementById('bTab').style.display = tab === 'bTab' ? 'block' : 'none';
+}
+
+function toggleFilter() {
+    const d = document.getElementById('filterMenu');
+    d.style.display = d.style.display === 'none' ? 'block' : 'none';
+    if(d.style.display === 'block') document.getElementById('searchInput').focus();
+}
+
+function filterProducts() {
+    const val = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(val) || p.category.toLowerCase().includes(val));
+    render(filtered);
+}
+
+function filterByCategory(cat) {
+    const filtered = cat === 'All' ? products : products.filter(p => p.category === cat);
+    render(filtered);
+    // UI toggle active class
+    document.querySelectorAll('.cat-chip').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.includes(cat));
+    });
+}
+
+initStore();
