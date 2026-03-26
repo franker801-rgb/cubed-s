@@ -1,5 +1,5 @@
 const DB_URL = "https://aad-garments-default-rtdb.firebaseio.com"; 
-const PASS = "fashionwala786"; 
+const PASS = "fashionwala574"; // Naya password yahan set kar diya hai
 
 let products = [];
 let banners = [];
@@ -72,7 +72,6 @@ function startSlider() {
     }, 9000);
 }
 
-// Database Sync Function
 async function sync() {
     return await fetch(`${DB_URL}/store.json`, { 
         method: 'PUT', 
@@ -80,25 +79,18 @@ async function sync() {
     });
 }
 
-// Fixed Toggle Stock
 async function toggleStock(i) {
     products[i].stock = !products[i].stock;
     await sync();
     render();
 }
 
-// FIXED DELETE FUNCTION (With Auto-Reload)
 async function deleteItem(i) {
     if(confirm("Kya aap sach mein is product ko nikalna chahte hain?")) {
-        // 1. Array se hatao
         products.splice(i, 1);
-        
-        // 2. Database update karo
         const response = await sync();
-        
         if(response.ok) {
             alert("Product Delete ho gaya!");
-            // 3. Page reload karo taaki purana data gayab ho jaye
             location.reload(); 
         } else {
             alert("Delete karne mein error aaya, dobara try karein.");
